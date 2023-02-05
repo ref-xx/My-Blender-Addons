@@ -33,20 +33,41 @@ class MoveCursorToFaceCenterOperator(Operator):
         bpy.ops.object.mode_set(mode='EDIT')
         bm = bmesh.from_edit_mesh(obj.data)
         active_face = bm.faces.active
+        center=None
+        if active_face and bpy.context.tool_settings.mesh_select_mode[2] == True:
+            center = active_face.calc_center_median()
+        
+        if center==None:    
+            # blender doesn't have bm.edges.active?!?!!!?
+            active_edge = [v for v in bm.edges if v.select]
+            if len(active_edge) > 0:
+                edge = active_edge[-1]        
+                if edge and bpy.context.tool_settings.mesh_select_mode[1] == True:
+                    start_vert = edge.verts[0]
+                    end_vert = edge.verts[1]
+                    center = (start_vert.co + end_vert.co) / 2
 
-        if active_face:
-            # Calculate the center of the active face and move object
-            face_center = active_face.calc_center_median()
-            bpy.context.scene.cursor.location = obj.matrix_world @ face_center
-            bpy.ops.object.mode_set(mode='OBJECT')
-            bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
-            bpy.context.scene.cursor.location = (0.0, 0.0, 0.0)
-            obj.location = bpy.context.scene.cursor.location
+        if center==None:    
+            active_vert = [v for v in bm.verts if v.select]
+            if len(active_vert) > 0:
+                active_vert = active_vert[-1]             
+                if active_vert and bpy.context.tool_settings.mesh_select_mode[0] == True:
+                    center = active_vert.co
 
-        else:
-            print("Cannot set origin. Please select a face first.")
-               
+        if center==None:    
+            self.report({'INFO'},"Cannot set origin. Please select a face/edge/vertex first.")
+            return {'FINISHED'}
+
+                
+        bpy.context.scene.cursor.location = obj.matrix_world @ center
+        bpy.ops.object.mode_set(mode='OBJECT')
+        bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
+        bpy.context.scene.cursor.location = (0.0, 0.0, 0.0)
+        obj.location = bpy.context.scene.cursor.location
         return {'FINISHED'}
+    
+
+
 
 def menu_func(self, context):
     self.layout.operator(MoveCursorToFaceCenterOperator.bl_idname)
