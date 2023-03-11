@@ -1,5 +1,5 @@
 # My Custom Blender Addons
-Various blender addons for extra functionality
+Various blender addons for extra functionality by Ref
 
 Following add-ons are replacing a set of commands with a single one. Normally to change object origin, you have to go to edit mode, select a vertex, change 3d cursor to there, then go back to object mode, then set origin to cursor, and reset cursor back to center position. following add-ons make it one click.
 
